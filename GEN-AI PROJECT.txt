@@ -1,0 +1,33 @@
+from transformers import pipeline
+from langchain.prompts import PromptTemplate
+from langchain_community.llms import HuggingFacePipeline
+
+# 1. Summarization (Document Understanding + Few-shot Prompting)
+summarizer = pipeline("summarization", model="facebook/bart-large-cnn")
+
+lecture_text = """Your extracted lecture text here..."""
+summary = summarizer(lecture_text, max_length=120, min_length=40, do_sample=False)
+print("Summary:", summary[0]['summary_text'])
+
+# 2. Flashcard Generator (Few-shot Prompting with LangChain)
+template = """You are a learning assistant.
+Generate 3 flashcards from the following text:
+{text}
+Format: Q: ... A: ...
+"""
+prompt = PromptTemplate(input_variables=["text"], template=template)
+flashcards = prompt.format(text=lecture_text)
+print("Flashcards:\n", flashcards)
+
+# 3. Practice Question Generator (Few-shot Prompting)
+question_template = """From the following text, generate 5 practice questions
+tailored for beginner students:
+{text}"""
+question_prompt = PromptTemplate(input_variables=["text"], template=question_template)
+questions = question_prompt.format(text=lecture_text)
+print("Questions:\n", questions)
+
+# 4. Machine Translation (for regional languages)
+translator = pipeline("translation", model="Helsinki-NLP/opus-mt-en-hi")
+translated = translator(summary[0]['summary_text'])
+print("Translated Summary (Hindi):", translated[0]['translation_text'])
